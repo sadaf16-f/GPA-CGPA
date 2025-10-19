@@ -1,37 +1,40 @@
 import streamlit as st
 import pandas as pd
 
-# ----------------------------------------
-# COMSATS University Lahore Grading System
-# ----------------------------------------
-def get_grade_point(marks):
-    if marks >= 85:
-        return 4.0
-    elif marks >= 80:
-        return 3.7
-    elif marks >= 75:
-        return 3.3
+# ======================================================
+# COMSATS University Islamabad 
+# ======================================================
+def get_grade_point_and_letter(marks):
+    if marks >= 86:
+        return 4.0, "A"
+    elif marks >= 82:
+        return 3.7, "A-"
+    elif marks >= 78:
+        return 3.3, "B+"
+    elif marks >= 74:
+        return 3.0, "B"
     elif marks >= 70:
-        return 3.0
-    elif marks >= 65:
-        return 2.7
-    elif marks >= 61:
-        return 2.3
+        return 2.7, "B-"
+    elif marks >= 66:
+        return 2.3, "C+"
+    elif marks >= 62:
+        return 2.0, "C"
     elif marks >= 58:
-        return 2.0
-    elif marks >= 55:
-        return 1.7
+        return 1.7, "C-"
+    elif marks >= 54:
+        return 1.3, "D+"
     elif marks >= 50:
-        return 1.0
+        return 1.0, "D"
     else:
-        return 0.0
+        return 0.0, "F"
 
 # ----------------------------------------
 # Streamlit Page Config
 # ----------------------------------------
 st.set_page_config(page_title="🎓 COMSATS GPA & CGPA Calculator", layout="centered")
 
-st.title("🎓 COMSATS University Lahore - GPA & CGPA Calculator")
+st.title("🎓 COMSATS University GPA & CGPA Calculator")
+st.markdown("#### Based on Official Grading Policy (Effective Fall 2021)")
 st.markdown("---")
 
 # ----------------------------------------
@@ -56,7 +59,7 @@ if num_subjects:
         with col3:
             credit_hours = st.number_input(f"Credit Hours ({subject})", min_value=1.0, max_value=4.0, step=0.5, key=f"ch_{i}")
         
-        grade_point = get_grade_point(marks)
+        grade_point, grade_letter = get_grade_point_and_letter(marks)
         quality_points = grade_point * credit_hours
         total_credit_hours += credit_hours
         total_quality_points += quality_points
@@ -65,6 +68,7 @@ if num_subjects:
             "Subject": subject,
             "Marks": marks,
             "Credit Hours": credit_hours,
+            "Grade": grade_letter,
             "Grade Point": grade_point
         })
 
