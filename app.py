@@ -1,100 +1,91 @@
 import streamlit as st
-import pandas as pd
 
-# ======================================================
-# COMSATS University Islamabad 
-# ======================================================
-def get_grade_point_and_letter(marks):
-    if marks >= 86:
-        return 4.0, "A"
-    elif marks >= 82:
-        return 3.7, "A-"
-    elif marks >= 78:
-        return 3.3, "B+"
-    elif marks >= 74:
-        return 3.0, "B"
-    elif marks >= 70:
-        return 2.7, "B-"
-    elif marks >= 66:
-        return 2.3, "C+"
-    elif marks >= 62:
-        return 2.0, "C"
-    elif marks >= 58:
-        return 1.7, "C-"
-    elif marks >= 54:
-        return 1.3, "D+"
-    elif marks >= 50:
-        return 1.0, "D"
-    else:
-        return 0.0, "F"
-
-# ----------------------------------------
-# Streamlit Page Config
-# ----------------------------------------
+# ---------------------------------------------
+# Streamlit Configuration
+# ---------------------------------------------
 st.set_page_config(page_title="🎓 COMSATS GPA & CGPA Calculator", layout="centered")
 
 st.title("🎓 COMSATS University GPA & CGPA Calculator")
-st.markdown("#### Based on Official Grading Policy (Effective Fall 2021)")
-st.markdown("---")
+st.caption("Based on Official Grading Policy ")
 
-# ----------------------------------------
-# Input Section
-# ----------------------------------------
-st.subheader("📘 Enter Your Subject Details")
+# ---------------------------------------------
+# COMSATS Grading Scale (Official Approximation)
+# ---------------------------------------------
+def percentage_to_gpa(percentage):
+    if percentage >= 86:
+        return 4.00
+    elif 82 <= percentage <= 85:
+        return 3.70
+    elif 78 <= percentage <= 81:
+        return 3.30
+    elif 74 <= percentage <= 77:
+        return 3.00
+    elif 70 <= percentage <= 73:
+        return 2.70
+    elif 66 <= percentage <= 69:
+        return 2.30
+    elif 62 <= percentage <= 65:
+        return 2.00
+    elif 58 <= percentage <= 61:
+        return 1.70
+    elif 54 <= percentage <= 57:
+        return 1.30
+    elif 50 <= percentage <= 53:
+        return 1.00
+    else:
+        return 0.00
 
-num_subjects = st.number_input("How many subjects do you have this semester?", min_value=1, step=1)
+# ---------------------------------------------
+# GPA Calculation Section
+# ---------------------------------------------
+st.header("📘 Semester GPA Calculator")
 
-subjects = []
-total_credit_hours = 0
-total_quality_points = 0
+num_subjects = st.number_input("Number of subjects this semester:", min_value=1, step=1)
 
-if num_subjects:
-    st.write("### 🧾 Enter Marks and Credit Hours")
-    for i in range(num_subjects):
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            subject = st.text_input(f"Subject {i+1} Name", key=f"sub_{i}")
-        with col2:
-            marks = st.number_input(f"Marks ({subject})", min_value=0.0, max_value=100.0, step=0.5, key=f"marks_{i}")
-        with col3:
-            credit_hours = st.number_input(f"Credit Hours ({subject})", min_value=1.0, max_value=4.0, step=0.5, key=f"ch_{i}")
-        
-        grade_point, grade_letter = get_grade_point_and_letter(marks)
-        quality_points = grade_point * credit_hours
-        total_credit_hours += credit_hours
-        total_quality_points += quality_points
-        
-        subjects.append({
-            "Subject": subject,
-            "Marks": marks,
-            "Credit Hours": credit_hours,
-            "Grade": grade_letter,
-            "Grade Point": grade_point
-        })
+subject_data = []
+for i in range(int(num_subjects)):
+    col1, col2 = st.columns(2)
+    with col1:
+        marks = st.number_input(f"Marks for Subject {i+1} (%)", min_value=0.0, max_value=100.0, key=f"marks_{i}")
+    with col2:
+        credit = st.number_input(f"Credit Hours for Subject {i+1}", min_value=0.5, step=0.5, key=f"credit_{i}")
+    subject_data.append((marks, credit))
 
-    # ----------------------------------------
-    # GPA Calculation
-    # ----------------------------------------
-    if total_credit_hours > 0:
-        gpa = total_quality_points / total_credit_hours
-        st.markdown("---")
-        st.subheader("📊 GPA Calculation Result")
-        df = pd.DataFrame(subjects)
-        st.dataframe(df, use_container_width=True)
-        st.success(f"🎯 **Your Semester GPA = {gpa:.2f}**")
+if st.button("Calculate GPA"):
+    total_quality_points = 0
+    total_credits = 0
+    for marks, credit in subject_data:
+        gpa = percentage_to_gpa(marks)
+        total_quality_points += gpa * credit
+        total_credits += credit
+    semester_gpa = total_quality_points / total_credits if total_credits > 0 else 0
+    st.success(f"✅ Your Semester GPA is: **{semester_gpa:.2f}**")
 
-        # ----------------------------------------
-        # CGPA Calculation
-        # ----------------------------------------
-        st.markdown("---")
-        st.subheader("📈 CGPA Calculation")
-        prev_cgpa = st.number_input("Enter your Previous CGPA (if any)", min_value=0.0, max_value=4.0, step=0.01)
-        prev_credit_hours = st.number_input("Enter your Total Previous Credit Hours", min_value=0.0, step=1.0)
-        
-        if st.button("Calculate CGPA"):
-            if prev_credit_hours > 0:
-                cgpa = (prev_cgpa * prev_credit_hours + gpa * total_credit_hours) / (prev_credit_hours + total_credit_hours)
-            else:
-                cgpa = gpa
+# ---------------------------------------------
+# CGPA Calculation Section
+# ---------------------------------------------
+st.header("📚 CGPA Calculator")
 
-            st.success(f"🏆 **Your Updated CGPA = {cgpa:.2f}**")
+prev_semesters = st.number_input("Number of previous semesters:", min_value=0, step=1)
+
+prev_data = []
+for i in range(int(prev_semesters)):
+    col1, col2 = st.columns(2)
+    with col1:
+        prev_gpa = st.number_input(f"GPA for Semester {i+1}", min_value=0.0, max_value=4.0, key=f"prev_gpa_{i}")
+    with col2:
+        prev_credit = st.number_input(f"Total Credit Hours for Semester {i+1}", min_value=1.0, step=0.5, key=f"prev_credit_{i}")
+    prev_data.append((prev_gpa, prev_credit))
+
+if st.button("Calculate CGPA"):
+    total_quality_points = sum(g * c for g, c in prev_data)
+    total_credits = sum(c for _, c in prev_data)
+
+    # Include current semester GPA if calculated
+    if 'semester_gpa' in locals():
+        current_credits = sum(c for _, c in subject_data)
+        total_quality_points += semester_gpa * current_credits
+        total_credits += current_credits
+
+    cgpa = total_quality_points / total_credits if total_credits > 0 else 0
+    st.success(f"📊 Your Cumulative CGPA is: **{cgpa:.2f}**")
